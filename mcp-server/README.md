@@ -60,3 +60,5 @@ got: {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"find_lectur
 
 ## The description experiment
 <!-- Three sentences: what you changed in the description, whether the model chose the tool differently, and why you think so. -->
+## The description experiment
+Промених описанието на инструмента за статус, за да включва изрично думата „диагностика“ и „проверка на здравето на сървъра“. Моделът започна да го избира много по-бързо, когато му задавах въпроси за техническото състояние. Причината е, че новите ключови думи съвпаднаха по-точно с потребителското запитване.

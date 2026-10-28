@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Study Groups</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h1 { text-align: center; color: #1c1e21; }
+        .error { color: #d93025; background: #fde8e8; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
+        form { display: flex; flexDirection: column; gap: 1rem; }
+        .field { display: flex; flex-direction: column; gap: 0.5rem; }
+        input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 0.5rem; background: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #166fe5; }
+        .footer { text-align: center; margin-top: 1rem; font-size: 0.9rem; }
+        .google-btn { background: white; color: #757575; border: 1px solid #ddd; margin-top: 0.5rem; display: block; text-decoration: none; text-align: center; padding: 0.5rem; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Login</h1>
+        <% if (error) { %>
+            <div class="error"><%= error %></div>
+        <% } %>
+        <form action="/login" method="POST">
+            <div class="field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+        <a href="/auth/google" class="google-btn">Continue with Google</a>
+        <div class="footer">
+            Don't have an account? <a href="/register">Register here</a>
+        </div>
+    </div>
+</body>
+</html>
