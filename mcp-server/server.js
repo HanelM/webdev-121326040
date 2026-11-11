@@ -1,8 +1,7 @@
 import readline from 'readline';
 import fs from 'fs';
 import path from 'path';
-
-const lecturesPath = path.resolve('mcp-server/lectures.json');
+import GroupService from '../services/groupService.js';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -10,7 +9,7 @@ const rl = readline.createInterface({
     terminal: false
 });
 
-rl.on('line', (line) => {
+rl.on('line', async (line) => {
     console.error(`got: ${line}`);
 
     try {
@@ -24,13 +23,13 @@ rl.on('line', (line) => {
                 result: {
                     protocolVersion: protocolVersion,
                     capabilities: { tools: {} },
-                    serverInfo: { name: "lectures", version: "0.1.0" }
+                    serverInfo: { name: "study-groups-mcp", version: "0.1.0" }
                 }
             };
             process.stdout.write(JSON.stringify(response) + '\n');
         }
         else if (msg.method === 'notifications/initialized') {
-            // Известието няма id и не получава отговор
+            // No response required for notifications
         }
         else if (msg.method === 'tools/list') {
             const response = {
@@ -39,26 +38,38 @@ rl.on('line', (line) => {
                 result: {
                     tools: [
                         {
-                            name: "find_lecture",
-                            description: "Return the title and topics of one course lecture by its number, 1 to 10. Use it when asked what a lecture covers. Returns one line of text.",
+                            name: "find_group",
+                            description: "Return the details, member count, and topics of a specific study group by its unique ID. Use it when looking up group information.",
                             inputSchema: {
                                 type: "object",
                                 properties: {
-                                    number: {
-                                        type: "integer",
-                                        description: "Lecture number, 1 to 10"
-                                    }
+                                    id: { type: "integer", description: "Group ID" },
+                                    userId: { type: "integer", description: "Caller user ID" }
                                 },
-                                required: ["number"]
+                                required: ["id"]
                             }
                         },
                         {
-                            name: "get_server_status",
-                            description: "Returns the current operational status and uptime details of the MCP server for diagnostic and health monitoring purposes.",
+                            name: "list_group_meetings",
+                            description: "List all upcoming scheduled study meetings for a given user dashboard or group.",
                             inputSchema: {
                                 type: "object",
-                                properties: {},
+                                properties: {
+                                    userId: { type: "integer", description: "Caller user ID" }
+                                },
                                 required: []
+                            }
+                        },
+                        {
+                            name: "search_study_material",
+                            description: "Search through shared notes and resources uploaded within study groups based on keywords.",
+                            inputSchema: {
+                                type: "object",
+                                properties: {
+                                    query: { type: "string", description: "Search query keywords" },
+                                    userId: { type: "integer", description: "Caller user ID" }
+                                },
+                                required: ["query"]
                             }
                         }
                     ]
@@ -69,54 +80,40 @@ rl.on('line', (line) => {
         else if (msg.method === 'tools/call') {
             const toolName = msg.params?.name;
             const args = msg.params?.arguments || {};
+            const userId = args.userId || 1; // MCP server knows who is calling
 
-            if (toolName === 'find_lecture') {
-                const lectureNum = args.number;
-                const lecturesData = JSON.parse(fs.readFileSync(lecturesPath, 'utf8'));
-                const lecture = lecturesData.find(l => l.number === lectureNum);
+            try {
+                let resultData;
 
-                if (lecture) {
-                    const topicsStr = Array.isArray(lecture.topics)
-                        ? lecture.topics.join(', ')
-                        : lecture.topics;
-                    const text = `Lecture ${lecture.number}: ${lecture.title}. Topics: ${topicsStr}`;
-
-                    process.stdout.write(JSON.stringify({
-                        jsonrpc: "2.0",
-                        id: msg.id,
-                        result: {
-                            content: [{ type: "text", text: text }],
-                            isError: false
-                        }
-                    }) + '\n');
-                } else {
-                    process.stdout.write(JSON.stringify({
-                        jsonrpc: "2.0",
-                        id: msg.id,
-                        result: {
-                            content: [{ type: "text", text: `There is no lecture ${lectureNum}. The course has lectures 1 to 10.` }],
-                            isError: true
-                        }
-                    }) + '\n');
+                if (toolName === 'find_group') {
+                    resultData = await GroupService.getGroupDetails(args.id, userId);
                 }
-            }
-            else if (toolName === 'get_server_status') {
+                else if (toolName === 'list_group_meetings') {
+                    resultData = await GroupService.listUserDashboard(userId);
+                }
+                else if (toolName === 'search_study_material') {
+                    resultData = await GroupService.searchMaterials(args.query, userId);
+                }
+                else {
+                    throw new Error(`Unknown tool: ${toolName}`);
+                }
+
                 process.stdout.write(JSON.stringify({
                     jsonrpc: "2.0",
                     id: msg.id,
                     result: {
-                        content: [{ type: "text", text: "Server is up and running smoothly." }],
+                        content: [{ type: "text", text: JSON.stringify(resultData, null, 2) }],
                         isError: false
                     }
                 }) + '\n');
-            }
-            else {
+
+            } catch (toolError) {
                 process.stdout.write(JSON.stringify({
                     jsonrpc: "2.0",
                     id: msg.id,
-                    error: {
-                        code: -32602,
-                        message: `Unknown tool: ${toolName}`
+                    result: {
+                        content: [{ type: "text", text: toolError.message }],
+                        isError: true
                     }
                 }) + '\n');
             }

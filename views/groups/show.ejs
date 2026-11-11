@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= group.name %> - Study Group</title>
+    <style>
+        :root { --primary: #4a90e2; --error: #d0021b; --success: #417505; --gray: #9b9b9b; --spacing: 1rem; }
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 0 var(--spacing); }
+        .card { border: 1px solid #ddd; padding: var(--spacing); margin-bottom: var(--spacing); border-radius: 4px; }
+        .error-banner { background: #fee; color: var(--error); padding: var(--spacing); border: 1px solid var(--error); margin-bottom: var(--spacing); }
+        .empty-state { color: var(--gray); font-style: italic; text-align: center; padding: 1rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        nav { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <nav><a href="/groups">← Back to Dashboard</a></nav>
+
+    <h1><%= group.name %></h1>
+    <p><%= group.description %></p>
+
+    <% if (error) { %>
+        <div class="error-banner"><%= error %></div>
+    <% } %>
+
+    <div class="card">
+        <h3>Members (<%= group.members.length %> / <%= group.max_members %>)</h3>
+        <ul>
+            <% group.members.forEach(member => { %>
+                <li><%= member.name %> <%= member.id === group.owner_id ? '(Owner)' : '' %></li>
+            <% }) %>
+        </ul>
+
+        <% if (!group.isMember) { %>
+            <!-- [AC-9] A student who views an open study group details page sees a "Join Group" button -->
+            <form action="/groups/<%= group.id %>/join" method="POST" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Joining...';">
+                <button type="submit" class="btn">Join Group</button>
+            </form>
+        <% } else if (!group.isOwner) { %>
+            <form action="/groups/<%= group.id %>/leave" method="POST" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Leaving...';">
+                <button type="submit" class="btn" style="background: var(--error);">Leave Group</button>
+            </form>
+        <% } %>
+    </div>
+
+    <section>
+        <h2>Meetings</h2>
+        <% if (group.meetings.length === 0) { %>
+            <div class="empty-state">No meetings scheduled for this group.</div>
+        <% } else { %>
+            <% group.meetings.forEach(meeting => { %>
+                <div class="card">
+                    <strong><%= meeting.title %></strong>
+                    <br>🕒 <%= new Date(meeting.start_time).toLocaleString() %> - <%= new Date(meeting.end_time).toLocaleTimeString() %>
+                    <br>📍 <%= meeting.location %>
+                </div>
+            <% }) %>
+        <% } %>
+
+        <% if (group.isOwner) { %>
+            <div class="card">
+                <h3>Schedule New Meeting</h3>
+                <form action="/groups/<%= group.id %>/meetings" method="POST" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Scheduling...';">
+                    <div style="margin-bottom: 0.5rem;">
+                        <label>Title: <input type="text" name="title" required style="width: 100%;"></label>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label>Start: <input type="datetime-local" name="startTime" required></label>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label>End: <input type="datetime-local" name="endTime" required></label>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label>Location: <input type="text" name="location" required style="width: 100%;"></label>
+                    </div>
+                    <button type="submit" class="btn">Schedule Meeting</button>
+                </form>
+            </div>
+        <% } %>
+    </section>
+</body>
+</html>

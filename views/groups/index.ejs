@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Study Groups</title>
+    <style>
+        :root { --primary: #4a90e2; --error: #d0021b; --success: #417505; --gray: #9b9b9b; --spacing: 1rem; }
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 0 var(--spacing); }
+        .card { border: 1px solid #ddd; padding: var(--spacing); margin-bottom: var(--spacing); border-radius: 4px; }
+        .error-banner { background: #fee; color: var(--error); padding: var(--spacing); border: 1px solid var(--error); margin-bottom: var(--spacing); }
+        .empty-state { color: var(--gray); font-style: italic; text-align: center; padding: 2rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .group-header { display: flex; justify-content: space-between; align-items: center; }
+        nav { margin-bottom: 2rem; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span>Welcome, <strong><%= user.name %></strong></span>
+        <form action="/logout" method="POST" style="display:inline;"><button type="submit" class="btn" style="background: var(--gray);">Logout</button></form>
+    </nav>
+
+    <h1>Study Groups Dashboard</h1>
+
+    <% if (error) { %>
+        <div class="error-banner"><%= error %></div>
+    <% } %>
+
+    <section>
+        <h2>My Groups</h2>
+        <% if (myGroups.length === 0) { %>
+            <div class="empty-state">You haven't joined any groups yet. Create one or join an open group below.</div>
+        <% } else { %>
+            <% myGroups.forEach(group => { %>
+                <div class="card group-header">
+                    <div>
+                        <strong><a href="/groups/<%= group.id %>"><%= group.name %></a></strong>
+                        <p style="margin: 0.2rem 0; font-size: 0.9rem;"><%= group.description %></p>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Upcoming Meetings</h2>
+        <% if (upcomingMeetings.length === 0) { %>
+            <div class="empty-state">No upcoming meetings scheduled.</div>
+        <% } else { %>
+            <% upcomingMeetings.forEach(meeting => { %>
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <strong><%= meeting.title %></strong> (<%= meeting.group_name %>)
+                    <br><small><%= new Date(meeting.start_time).toLocaleString() %> @ <%= meeting.location %></small>
+                </div>
+            <% }) %>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Create New Group</h2>
+        <form action="/groups" method="POST" class="card" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Creating...';">
+            <div style="margin-bottom: 0.5rem;">
+                <label>Name: <input type="text" name="name" required style="width: 100%;"></label>
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <label>Description: <textarea name="description" style="width: 100%;"></textarea></label>
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <label>Max Members: <input type="number" name="maxMembers" value="10" min="1" max="50"></label>
+            </div>
+            <button type="submit" class="btn">Create Group</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Open Groups</h2>
+        <% if (openGroups.length === 0) { %>
+            <div class="empty-state">No other open groups available at the moment.</div>
+        <% } else { %>
+            <% openGroups.forEach(group => { %>
+                <div class="card group-header">
+                    <div>
+                        <strong><%= group.name %></strong>
+                        <p style="margin: 0; font-size: 0.9rem;"><%= group.description %></p>
+                    </div>
+                    <form action="/groups/<%= group.id %>/join" method="POST" onsubmit="this.querySelector('button').disabled=true;">
+                        <button type="submit" class="btn">Join Group</button>
+                    </form>
+                </div>
+            <% }) %>
+        <% } %>
+    </section>
+</body>
+</html>

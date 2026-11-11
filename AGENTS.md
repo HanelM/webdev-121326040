@@ -60,6 +60,7 @@ that talks to the database directly is a second, unguarded way into your data: n
 - adding, renaming or removing an MCP tool
 - changing a coverage threshold
 - sending user data to a third-party model
+- modifying study group membership or scheduling validation logic
 
 ## Never
 - commit secrets, passwords, API keys or an OAuth client secret
@@ -67,3 +68,5 @@ that talks to the database directly is a second, unguarded way into your data: n
 - lower a coverage threshold or switch off a CI job to make the build green
 - add an MCP tool that reaches past the service layer
 - log a prompt that contains somebody's personal data
+
+

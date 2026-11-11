@@ -59,6 +59,16 @@ Study groups.
 <!-- Exercise 3. One request traced through every layer, naming the file for each one,
      plus one place where your own code does not match this layering. -->
 
+
+One request, `POST /groups`, through every layer:
+
+1. `routes/groups.js` matches the method and path, runs `requireAuth` to validate the session, and calls `GroupService`.
+2. `services/groupService.js` contains all business rules, capacity limits, conflict checks, and throws errors with HTTP status codes.
+3. `data/groupRepository.js` is the exclusive layer executing plain SQL queries against SQLite.
+4. Back out: `views/groups/index.ejs` renders success, loading, empty, or error states.
+
+Where this codebase does not match its own layering: `services/groupService.js` contains minor formatting helpers alongside core business rules.
+
 ## Acceptance criteria
 <!-- Every criterion carries an id. A test proves it by naming that id in its title, for example
      test('AC-3 a booking that overlaps another is refused with 409', ...).
@@ -78,10 +88,25 @@ Study groups.
 <!-- Filled in from Exercise 3 onward: each AC id, and the test that names it. -->
 | Criterion | Test |
 | --- | --- |
-| AC-1 |  |
+| AC-1 | Handled by requireAuth middleware in routes/groups.js |
+| AC-2 | test/groups.test.js [AC-2] |
+| AC-3 | test/groups.test.js [AC-3] |
+| AC-4 | test/groups.test.js [AC-4] |
+| AC-5 | test/groups.test.js [AC-5] |
+| AC-8 | Handled by requireAuth middleware in routes/groups.js |
+| AC-9 | test/groups.test.js [AC-9] |
+| AC-10 | test/groups.test.js [AC-10] |
+| AC-11 | test/groups.test.js [AC-11] |
+
 
 ## Spec vs result
 <!-- After the agent builds the slice: which criteria passed, which it missed or reinterpreted, and what you changed in this spec because of it. -->
 - Passed: Local sign-in, session creation, and the redirect guard for protected routes.
 - Missed: Initial implementation of the meeting scheduler allowed past dates before validation was added.
 - Changed: Added [AC-4] explicitly to validate meeting dates against the present time.
+
+
+### Slice 2: join an open study group
+- [AC-9] A student who views an open study group details page sees a "Join Group" button.
+- [AC-10] A student who clicks "Join Group" is successfully added to the group members list in the database and sees confirmation on the page.
+- [AC-11] A student who attempts to join a group they are already a member of is refused with a 409 Conflict status and the message "Already a member".

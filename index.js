@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const authRoutes = require('./routes/auth');
+const groupRoutes = require('./routes/groups');
 
 const app = express();
 
@@ -21,14 +22,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Routes
 app.use('/', authRoutes);
-
-// Protected route placeholder for next step
-app.get('/groups', (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/login');
-    }
-    res.send(`<h1>Welcome, ${req.session.user.name}!</h1><p>Groups list coming soon...</p><form action="/logout" method="POST"><button>Logout</button></form>`);
-});
+app.use('/groups', groupRoutes);
 
 // Default redirect
 app.get('/', (req, res) => {
