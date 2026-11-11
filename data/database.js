@@ -5,6 +5,9 @@ const path = require('path');
 const dbPath = path.join(__dirname, '../database.sqlite');
 const db = new Database(dbPath);
 
+// Temporarily disable foreign keys during schema creation and migrations
+db.exec('PRAGMA foreign_keys = OFF;');
+
 const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 db.exec(schema);
 
@@ -19,5 +22,7 @@ if (fs.existsSync(migrationsDir)) {
         }
     });
 }
+
+db.exec('PRAGMA foreign_keys = ON;');
 
 module.exports = db;
