@@ -42,7 +42,8 @@
 - How I checked: Reviewed production architecture and conducted endpoint load testing.
 
 ## 8. Model feature
-- **Data leaving the app:** Only the user-submitted study topic description is sent to the AI provider. User passwords, emails, private messages, and group membership data never leave the application.
+- **Data leaving the app (goes to the provider):** Only the user-submitted study topic description is sent to the AI provider.
+- **Data that does not leave the app:** User passwords, emails, session tokens, private messages, and group membership data never leave the application and are not sent to the provider.
 - **Cost per request:** Approximately $0.0004 per request based on ~900 input tokens and ~60 output tokens using pricing as of September 2026.
 - **Provider downtime:** If the AI provider is down, the app catches the error and falls back gracefully to a manual plan message.
 - **How I checked:** Tested locally with and without API keys, and verified network payloads.
