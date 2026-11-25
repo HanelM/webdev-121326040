@@ -18,19 +18,19 @@
 </head>
 <body>
     <nav>
-        <span>Welcome, <strong><%= user.name %></strong></span>
+        <span>Welcome, <strong><%= (typeof user !== 'undefined' && user.name) ? user.name : 'User' %></strong></span>
         <form action="/logout" method="POST" style="display:inline;"><button type="submit" class="btn" style="background: var(--gray);">Logout</button></form>
     </nav>
 
     <h1>Study Groups Dashboard</h1>
 
-    <% if (error) { %>
+    <% if (typeof error !== 'undefined' && error) { %>
         <div class="error-banner"><%= error %></div>
     <% } %>
 
     <section>
         <h2>My Groups</h2>
-        <% if (myGroups.length === 0) { %>
+        <% if (typeof myGroups === 'undefined' || !Array.isArray(myGroups) || myGroups.length === 0) { %>
             <div class="empty-state">You haven't joined any groups yet. Create one or join an open group below.</div>
         <% } else { %>
             <% myGroups.forEach(group => { %>
@@ -46,7 +46,7 @@
 
     <section>
         <h2>Upcoming Meetings</h2>
-        <% if (upcomingMeetings.length === 0) { %>
+        <% if (typeof upcomingMeetings === 'undefined' || !Array.isArray(upcomingMeetings) || upcomingMeetings.length === 0) { %>
             <div class="empty-state">No upcoming meetings scheduled.</div>
         <% } else { %>
             <% upcomingMeetings.forEach(meeting => { %>
@@ -76,7 +76,7 @@
 
     <section>
         <h2>Open Groups</h2>
-        <% if (openGroups.length === 0) { %>
+        <% if (typeof openGroups === 'undefined' || !Array.isArray(openGroups) || openGroups.length === 0) { %>
             <div class="empty-state">No other open groups available at the moment.</div>
         <% } else { %>
             <% openGroups.forEach(group => { %>
