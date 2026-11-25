@@ -6,22 +6,25 @@ class GroupService {
             throw new Error('Group name is required');
         }
 
-        const groupId = GroupRepository.create(name, description, userId, maxMembers);
-        // [AC-2] A student who creates a new study group becomes its owner and sees themselves in the members list
-        GroupRepository.addMember(userId, groupId);
+        // FIX: Added 'await' so groupId resolves to the actual integer ID
+        const groupId = await GroupRepository.create(name, description, userId, maxMembers);
 
-        return GroupRepository.findById(groupId);
+        // [AC-2] A student who creates a new study group becomes its owner and sees themselves in the members list
+        // FIX: Added 'await' here as well
+        await GroupRepository.addMember(userId, groupId);
+
+        return await GroupRepository.findById(groupId);
     }
 
     static async getGroupDetails(groupId, userId) {
-        const group = GroupRepository.findById(groupId);
+        const group = await GroupRepository.findById(groupId);
         if (!group) {
             throw new Error('Group not found');
         }
 
-        const members = GroupRepository.listMembers(groupId);
-        const meetings = GroupRepository.listMeetingsByGroup(groupId);
-        const userMembership = GroupRepository.getMembership(userId, groupId);
+        const members = await GroupRepository.listMembers(groupId);
+        const meetings = await GroupRepository.listMeetingsByGroup(groupId);
+        const userMembership = await GroupRepository.getMembership(userId, groupId);
 
         return {
             ...group,
@@ -33,9 +36,9 @@ class GroupService {
     }
 
     static async listUserDashboard(userId) {
-        const myGroups = GroupRepository.listJoinedByUser(userId);
-        const upcomingMeetings = GroupRepository.listUpcomingByUser(userId);
-        const openGroups = GroupRepository.listNotJoinedByUser(userId);
+        const myGroups = await GroupRepository.listJoinedByUser(userId);
+        const upcomingMeetings = await GroupRepository.listUpcomingByUser(userId);
+        const openGroups = await GroupRepository.listNotJoinedByUser(userId);
 
         return {
             myGroups,
@@ -45,13 +48,13 @@ class GroupService {
     }
 
     static async joinGroup(groupId, userId) {
-        const group = GroupRepository.findById(groupId);
+        const group = await GroupRepository.findById(groupId);
         if (!group) {
             throw new Error('Group not found');
         }
 
         // [AC-11] A student who attempts to join a group they are already a member of is refused with a 409 Conflict status and the message "Already a member"
-        const existing = GroupRepository.getMembership(userId, groupId);
+        const existing = await GroupRepository.getMembership(userId, groupId);
         if (existing) {
             const error = new Error('Already a member');
             error.status = 409;
@@ -59,7 +62,7 @@ class GroupService {
         }
 
         // [AC-3] A student who attempts to join a group that has reached its maximum member limit sees the message "This group is full" and cannot join
-        const currentCount = GroupRepository.countMembers(groupId);
+        const currentCount = await GroupRepository.countMembers(groupId);
         if (currentCount >= group.max_members) {
             const error = new Error('This group is full');
             error.status = 409;
@@ -67,12 +70,12 @@ class GroupService {
         }
 
         // [AC-10] A student who clicks "Join Group" is successfully added to the group members list
-        GroupRepository.addMember(userId, groupId);
+        await GroupRepository.addMember(userId, groupId);
         return { success: true };
     }
 
     static async leaveGroup(groupId, userId) {
-        const group = GroupRepository.findById(groupId);
+        const group = await GroupRepository.findById(groupId);
         if (!group) {
             throw new Error('Group not found');
         }
@@ -84,24 +87,23 @@ class GroupService {
         }
 
         // [AC-5] A member who leaves a study group no longer sees that group's upcoming meetings on their dashboard
-        GroupRepository.removeMember(userId, groupId);
+        await GroupRepository.removeMember(userId, groupId);
         return { success: true };
     }
+
     static async searchMaterials(query, userId) {
-        // Return study materials matching query for the user
         const dashboard = await this.listUserDashboard(userId);
         return {
             query,
-            results: [] // or filtered meetings/groups based on query
+            results: []
         };
     }
 
     static async scheduleMeeting(groupId, userId, { title, startTime, endTime, location }) {
-        const group = GroupRepository.findById(groupId);
+        const group = await GroupRepository.findById(groupId);
         if (!group) {
             throw new Error('Group not found');
         }
-
 
         // Authorization check: Only owner can schedule
         if (group.owner_id !== userId) {
@@ -125,14 +127,14 @@ class GroupService {
         }
 
         // Overlap validation (Business rule for 409 Conflict)
-        const overlap = GroupRepository.findOverlappingMeeting(groupId, startTime, endTime);
+        const overlap = await GroupRepository.findOverlappingMeeting(groupId, startTime, endTime);
         if (overlap) {
             const error = new Error('Meeting overlaps with an existing meeting');
             error.status = 409;
             throw error;
         }
 
-        const meetingId = GroupRepository.createMeeting(groupId, title, startTime, endTime, location);
+        const meetingId = await GroupRepository.createMeeting(groupId, title, startTime, endTime, location);
         return { id: meetingId, success: true };
     }
 }
