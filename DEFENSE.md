@@ -45,3 +45,10 @@
 <!-- Answer this one honestly, in writing, before the defence. Everybody has one.
      Finding it now means you either learn it or say so plainly on the day, and both
      of those go better than being shown it by somebody else. -->
+
+
+# Defense Documentation
+
+## Fixes Implemented
+* **R1 / Authentication & Validation:** Added strict password complexity requirements and input sanitization on registration routes.
+* **R2 / Session Security:** Enabled secure cookie flags and session ID regeneration upon login.
