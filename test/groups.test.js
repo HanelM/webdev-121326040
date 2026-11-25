@@ -34,7 +34,6 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
         resetDb();
         const group = await GroupService.createGroup(1, { name: 'Full Group', description: 'Full', maxMembers: 1 });
 
-        // Bob tries to join
         try {
             await GroupService.joinGroup(group.id, 2);
             assert.fail('Should have thrown an error');
@@ -47,7 +46,7 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
     await t.test('[AC-4] An owner who schedules a meeting with past dates sees a validation error and the meeting is not saved', async () => {
         resetDb();
         const group = await GroupService.createGroup(1, { name: 'Meeting Group', description: 'Desc' });
-        const pastDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
+        const pastDate = new Date(Date.now() - 86400000).toISOString();
         const futureDate = new Date(Date.now() + 86400000).toISOString();
 
         try {
@@ -114,7 +113,7 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
         const end = new Date(Date.now() + 7200000).toISOString();
 
         try {
-            await GroupService.scheduleMeeting(group.id, 2, { // User 2 is not owner
+            await GroupService.scheduleMeeting(group.id, 2, {
                 title: 'Unauthorized Meeting',
                 startTime: start,
                 endTime: end,
@@ -127,7 +126,6 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
     });
 
     await t.test('[AC-8] An unauthenticated API request receives a 401 Unauthorized status', async () => {
-        // Handled by requireAuth middleware in routes/groups.js
         assert.strictEqual(true, true);
     });
 
@@ -155,7 +153,7 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
         const group = await GroupService.createGroup(1, { name: 'Double Join', description: 'Desc' });
 
         try {
-            await GroupService.joinGroup(group.id, 1); // Owner is already a member
+            await GroupService.joinGroup(group.id, 1);
             assert.fail('Should have thrown an error');
         } catch (error) {
             assert.strictEqual(error.message, 'Already a member');
@@ -187,6 +185,58 @@ test('Study Groups Platform - Acceptance Criteria', async (t) => {
         } catch (error) {
             assert.strictEqual(error.message, 'Meeting overlaps with an existing meeting');
             assert.strictEqual(error.status, 409);
+        }
+    });
+
+    await t.test('[GroupService] createGroup throws error on empty name', async () => {
+        resetDb();
+        await assert.rejects(async () => {
+            await GroupService.createGroup(1, { name: '   ', description: 'Test', maxMembers: 5 });
+        }, /Group name is required/);
+    });
+
+    await t.test('[GroupService] searchMaterials returns expected structure', async () => {
+        resetDb();
+        const result = await GroupService.searchMaterials('study', 1);
+        assert.strictEqual(result.query, 'study');
+        assert.ok(Array.isArray(result.results));
+    });
+
+    await t.test('[GroupService] scheduleMeeting throws error on missing fields', async () => {
+        resetDb();
+        const group = await GroupService.createGroup(1, { name: 'Meeting Group', description: 'Desc' });
+        try {
+            await GroupService.scheduleMeeting(group.id, 1, {
+                title: '',
+                startTime: '',
+                endTime: '',
+                location: ''
+            });
+            assert.fail('Should have thrown an error');
+        } catch (error) {
+            assert.strictEqual(error.message, 'All meeting fields are required');
+        }
+    });
+
+    await t.test('[GroupService] throws error when group is not found', async () => {
+        resetDb();
+        const fakeId = 999;
+
+        await assert.rejects(async () => { await GroupService.getGroupDetails(fakeId, 1); }, /Group not found/);
+        await assert.rejects(async () => { await GroupService.joinGroup(fakeId, 1); }, /Group not found/);
+        await assert.rejects(async () => { await GroupService.leaveGroup(fakeId, 1); }, /Group not found/);
+        await assert.rejects(async () => { await GroupService.scheduleMeeting(fakeId, 1, { title: 'T', startTime: new Date().toISOString(), endTime: new Date().toISOString(), location: 'L' }); }, /Group not found/);
+    });
+
+    await t.test('[GroupService] owner cannot leave group', async () => {
+        resetDb();
+        const group = await GroupService.createGroup(1, { name: 'Owner Group', description: 'Desc', maxMembers: 5 });
+        try {
+            await GroupService.leaveGroup(group.id, 1);
+            assert.fail('Should have thrown an error');
+        } catch (error) {
+            assert.strictEqual(error.message, 'Owner cannot leave group');
+            assert.strictEqual(error.status, 403);
         }
     });
 });

@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "node --test test/*.test.js",
-    "mcp": "node mcp-server/server.js"
+    "mcp": "node mcp-server/server.js",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include='services/**' --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 && node --test --experimental-test-coverage --test-coverage-include='routes/**' --test-coverage-lines=80"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "better-sqlite3": "^13.0.3",
     "ejs": "^7.0.2",
     "express": "^5.3.0",
-    "express-session": "^1.19.0"
+    "express-session": "^1.19.0",
+    "pg": "^8.23.1"
   }
 }
