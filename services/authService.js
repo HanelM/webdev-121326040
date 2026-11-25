@@ -6,14 +6,12 @@ class AuthService {
         const passwordHash = await bcrypt.hash(password, 10);
         try {
             if (typeof db.query === 'function') {
-                // PostgreSQL (Render / Production)
                 const result = await db.query(
                     'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
                     [email, passwordHash, name]
                 );
                 return result.rows[0];
             } else {
-                // SQLite (Local Development)
                 const info = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')
                     .run(email, passwordHash, name);
                 return { id: info.lastInsertRowid, email, name };
