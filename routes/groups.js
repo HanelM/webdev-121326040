@@ -5,7 +5,7 @@ const GroupService = require('../services/groupService');
 // Middleware to check if user is authenticated
 function requireAuth(req, res, next) {
     if (!req.session.user) {
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             // [AC-8] An unauthenticated user cannot access group creation endpoints via direct API calls
             return res.status(401).json({ error: 'Unauthorized' });
         }
@@ -31,18 +31,18 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { name, description, maxMembers } = req.body;
-        await GroupService.createGroup(req.session.user.id, { 
-            name, 
-            description, 
-            maxMembers: maxMembers ? parseInt(maxMembers) : 10 
+        await GroupService.createGroup(req.session.user.id, {
+            name,
+            description,
+            maxMembers: maxMembers ? parseInt(maxMembers) : 10
         });
         res.redirect('/groups');
     } catch (error) {
         const dashboardData = await GroupService.listUserDashboard(req.session.user.id);
-        res.status(error.status || 400).render('groups/index', { 
-            ...dashboardData, 
-            user: req.session.user, 
-            error: error.message 
+        res.status(error.status || 400).render('groups/index', {
+            ...dashboardData,
+            user: req.session.user,
+            error: error.message
         });
     }
 });
@@ -67,10 +67,10 @@ router.post('/:id/join', async (req, res) => {
         res.redirect(`/groups/${req.params.id}`);
     } catch (error) {
         const groupDetails = await GroupService.getGroupDetails(parseInt(req.params.id), req.session.user.id);
-        res.status(error.status || 400).render('groups/show', { 
-            group: groupDetails, 
-            user: req.session.user, 
-            error: error.message 
+        res.status(error.status || 400).render('groups/show', {
+            group: groupDetails,
+            user: req.session.user,
+            error: error.message
         });
     }
 });
@@ -82,10 +82,10 @@ router.post('/:id/leave', async (req, res) => {
         res.redirect('/groups');
     } catch (error) {
         const groupDetails = await GroupService.getGroupDetails(parseInt(req.params.id), req.session.user.id);
-        res.status(error.status || 400).render('groups/show', { 
-            group: groupDetails, 
-            user: req.session.user, 
-            error: error.message 
+        res.status(error.status || 400).render('groups/show', {
+            group: groupDetails,
+            user: req.session.user,
+            error: error.message
         });
     }
 });
@@ -100,10 +100,10 @@ router.post('/:id/meetings', async (req, res) => {
         res.redirect(`/groups/${req.params.id}`);
     } catch (error) {
         const groupDetails = await GroupService.getGroupDetails(parseInt(req.params.id), req.session.user.id);
-        res.status(error.status || 400).render('groups/show', { 
-            group: groupDetails, 
-            user: req.session.user, 
-            error: error.message 
+        res.status(error.status || 400).render('groups/show', {
+            group: groupDetails,
+            user: req.session.user,
+            error: error.message
         });
     }
 });
